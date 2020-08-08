@@ -14,16 +14,19 @@ from kivymd.uix.card import MDCardSwipe
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
+from citadels_helper import *
 
 # Window.size = (900, 1600)
 
 screen_helper = """
 <PlayerInsert>
+    id: player_dialog
     orientation: "vertical"
     spacing: "12dp"
     size_hint_y: None
 
     MDTextField:
+        id: player_name
         hint_text: "Name"
 
 
@@ -153,6 +156,9 @@ screen_helper = """
         on_release: root.navigation_draw"""
 
 
+game = Citadels()
+
+
 class StartScreen(NavigationLayout):
     """Главный экран приложения."""
     pass
@@ -191,6 +197,8 @@ class PlayerInsert(BoxLayout):
 
 class BaseScreen(Screen):
     dialog = None
+    game = Citadels()
+
     # start_label = None
     #
     # def on_enter(self):
@@ -200,25 +208,35 @@ class BaseScreen(Screen):
     def show_confirmation_dialog(self):
         if not self.dialog:
             self.dialog = MDDialog(
-                title="Address:",
+                title="Player:",
                 type="custom",
+                id="dialog",
+                auto_dismiss=False,
                 content_cls=PlayerInsert(),
                 buttons=[
                     MDFlatButton(
-                        text="CANCEL", text_color=MDApp().theme_cls.primary_color
+                        text="CANCEL", text_color=MDApp().theme_cls.primary_color,
+                        on_release=lambda x: self.dialog_close()
                     ),
                     MDFlatButton(
-                        text="OK", text_color=MDApp().theme_cls.primary_color
+                        text="OK", text_color=MDApp().theme_cls.primary_color,
+                        on_release=lambda x: self.add_player()
                     ),
                 ],
             )
         self.dialog.open()
 
+    def dialog_close(self, *args):
+        self.dialog.dismiss(force=True)
+
     def add_player(self):
-        app_cur = MDApp.get_running_app()
+        name = self.dialog.content_cls.ids.player_name.text
+        self.dialog.content_cls.ids.player_name.text = ""
+        game.add_player(name)
         self.ids.player_list.add_widget(
-            SwipeToDeleteItem(text="Dyadya")
+            SwipeToDeleteItem(text=name)
         )
+        self.dialog_close()
 
     def remove_item(self, instance):
         self.ids.player_list.remove_widget(instance)
