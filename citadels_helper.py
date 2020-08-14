@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import random
+import typing
 
 characters_name = [
     (1, 'Asasin'),
@@ -52,6 +53,35 @@ class Character:
         if self.status == self.CharacterStatus.ROBBED:
             return True
         return False
+
+
+class CharacterAsasin(Character):
+    def make_action(self, character) -> None:
+        character.to_kill()
+
+
+class CharacterThief(Character):
+    def make_action(self, character) -> None:
+        character.to_rob()
+
+
+class PersonFactory:
+    def __init__(self):
+        self._types = {}
+
+    def register_type(self, name: str, character: typing.Type[Character]):
+        self._types[name] = character
+
+    def get_character(self, name):
+        character = self._types.get(name)
+        if not character:
+            raise ValueError(name)
+        return character(name=name)
+
+
+factory = PersonFactory()
+factory.register_type("Asasin", CharacterAsasin)
+factory.register_type("Thief", CharacterThief)
 
 
 def rotate(l, n):
